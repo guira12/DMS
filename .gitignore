@@ -1,0 +1,17 @@
+**/*.secrets
+*.env
+
+# droneDB postgress data
+droneDB/data
+droneDB/init
+ 
+# minio data
+minio/data/
+
+# Java / Maven
+droneManager/target/
+*.log
+
+#Editor
+*.idea
+*.vscode

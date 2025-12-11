@@ -1,0 +1,33 @@
+services:
+
+  droneDB:
+    image: postgres:15
+    container_name: droneDB
+    env_file:
+      - ./droneDB/config/postgres.env
+      - ./droneDB/config/postgres.env.secrets
+    volumes:
+      - ./droneDB/data:/var/lib/postgresql/data
+      - ./droneDB/init:/docker-entrypoint-initdb.d
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    networks:
+      - backend-network
+
+  minio:
+    image: minio/minio
+    container_name: minio
+    env_file:
+      - ./minio/config/minio.env.secrets
+    command: server /data --console-address ":9001"
+    ports:
+      - "${MINIO_S3_API_PORT}:9000"
+      - "${MINIO_CONSOLE_PORT}:9001"
+    volumes:
+      - ./minio/data:/data
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+    driver: bridge
