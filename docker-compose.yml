@@ -1,7 +1,28 @@
 services:
+  
+  droneManager:
+    image: drone_manager:latest
+    container_name: droneManager
+    environment:
+      DB_HOST: droneDB
+      DB_PORT: 5432
+      DB_NAME: dronedb
+      DB_USER: droneuser
+      DB_PASS: dr0n3pass
+    ports:
+      - 9005:9005
+    networks:
+      - backend-network
+    depends_on:
+      droneDB:
+        condition: service_healthy
+        restart: true
+      minio:
+        condition: service_healthy
+        restart: true
 
   droneDB:
-    image: postgres:15
+    image: drone_db:latest
     container_name: droneDB
     env_file:
       - ./droneDB/config/postgres.env
@@ -11,11 +32,17 @@ services:
       - ./droneDB/init:/docker-entrypoint-initdb.d
     ports:
       - "${POSTGRES_PORT}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 3s
     networks:
       - backend-network
 
   minio:
-    image: minio/minio
+    image: minio:latest
     container_name: minio
     env_file:
       - ./minio/config/minio.env.secrets
@@ -25,8 +52,15 @@ services:
       - "${MINIO_CONSOLE_PORT}:9001"
     volumes:
       - ./minio/data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:9000/minio/health/live || curl -fs https://localhost:9000/minio/health/live"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 3s
     networks:
       - backend-network
+
 
 networks:
   backend-network:
