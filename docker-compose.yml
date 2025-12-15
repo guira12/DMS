@@ -1,14 +1,10 @@
 services:
-  
   droneManager:
     image: drone_manager:latest
     container_name: droneManager
-    environment:
-      DB_HOST: droneDB
-      DB_PORT: 5432
-      DB_NAME: dronedb
-      DB_USER: droneuser
-      DB_PASS: dr0n3pass
+    env_file:
+      - ./droneManager/config/envs/droneManager.env
+      - ./droneManager/config/envs/droneManager.env.secrets
     ports:
       - 9005:9005
     networks:
@@ -25,8 +21,8 @@ services:
     image: drone_db:latest
     container_name: droneDB
     env_file:
-      - ./droneDB/config/postgres.env
-      - ./droneDB/config/postgres.env.secrets
+      - ./droneDB/config/envs/postgres.env
+      - ./droneDB/config/envs/postgres.env.secrets
     volumes:
       - ./droneDB/data:/var/lib/postgresql/data
       - ./droneDB/init:/docker-entrypoint-initdb.d
@@ -45,7 +41,7 @@ services:
     image: minio:latest
     container_name: minio
     env_file:
-      - ./minio/config/minio.env.secrets
+      - ./minio/config/envs/minio.env.secrets
     command: server /data --console-address ":9001"
     ports:
       - "${MINIO_S3_API_PORT}:9000"

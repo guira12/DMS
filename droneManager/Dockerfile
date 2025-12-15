@@ -11,10 +11,10 @@ RUN ./mvnw -q -e -DskipTests package
 # STAGE 2: preparing Runtime with JRE only (light weight image)
 FROM eclipse-temurin:21-jre
 
-#RUN apt-get update && apt-get install --no-install-recommends -y \
-#	bash \
-#	net-tools \
-#	iputils-ping
+RUN apt-get update && apt-get install --no-install-recommends -y \
+	bash \
+	net-tools \
+	iputils-ping
 
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar

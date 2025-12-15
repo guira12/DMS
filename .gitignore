@@ -1,5 +1,7 @@
+# env variables injected in containers
 **/*.secrets
 *.env
+custom.mk
 
 # droneDB postgress data
 droneDB/data
