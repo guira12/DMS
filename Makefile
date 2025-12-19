@@ -1,7 +1,8 @@
 # main Makefile
 include custom.mk
 SUBMODULES = droneManager droneDB minio
-ENV_FOLDER ?= config/envs/ 
+ENV_FOLDER ?= config/envs/
+export ENV_FOLDER
 
 .PHONY: all build $(SUBMODULES)
 
@@ -27,3 +28,10 @@ stop:
 	@echo ""
 	@echo "====== arret de tout les containers DMS  ======"
 	docker compose down
+
+clean:
+	@for module in $(SUBMODULES); do \
+		echo ""; \
+		echo "====== Clean du module $$module ======"; \
+		$(MAKE) -C $$module clean; \
+	done
