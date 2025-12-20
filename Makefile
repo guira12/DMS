@@ -1,37 +1,87 @@
-# main Makefile
+# ============================================================
+# Main Makefile
+# ============================================================
+
 include custom.mk
-SUBMODULES = droneManager droneDB minio
+
+# ------------------------------------------------------------
+# Configuration
+# ------------------------------------------------------------
+
+# List of project submodules
+SUBMODULES := droneManager droneDB minio
+
+# Environment files folder
 ENV_FOLDER ?= config/envs/
 export ENV_FOLDER
 
-.PHONY: all build $(SUBMODULES)
+# Flags passed to sub-make calls
+# Default: silent (-s)
+FLAGS ?= -s
+
+.PHONY: \
+	all build start stop clean proper \
+	$(SUBMODULES) \
+	build-% \
+	clean-%
+# ------------------------------------------------------------
+# Helper macro
+# ------------------------------------------------------------
+
+define run_module
+	@echo ""
+	@echo "==> $1 for module $2."
+	@$(MAKE) $(FLAGS) -C $2 $3
+endef
+
+# ------------------------------------------------------------
+# Default target
+# ------------------------------------------------------------
 
 all: build
 
+# ------------------------------------------------------------
+# Build targets
+# ------------------------------------------------------------
 
-$(SUBMODULES):
-	@echo ""
-	@echo "====== Build du module $@ ======"
-	$(MAKE) -C $@ build
-	@echo ""
-	@echo "====== generation des fichier ENV du module  $@ ======"
-	./build/scripts/placeHoldersReplacement.sh $@ $(ENV_FOLDER)
+build: $(addprefix build-,$(SUBMODULES))
 
-build: $(SUBMODULES)
+build-%:
+	$(call run_module,Build,$*,build)
+	@echo "====== Generating ENV files for module $* ======"
+	./build/scripts/placeHoldersReplacement.sh $* $(ENV_FOLDER)
+
+# ------------------------------------------------------------
+# Docker targets
+# ------------------------------------------------------------
 
 start: build
 	@echo ""
-	@echo "====== lancement des containers de tout le projet  ======"
+	@echo "====== Starting all project containers ======"
 	docker compose up -d
 
-stop: 
+stop:
 	@echo ""
-	@echo "====== arret de tout les containers DMS  ======"
+	@echo "====== Stopping all DMS containers ======"
 	docker compose down
 
-clean:
-	@for module in $(SUBMODULES); do \
-		echo ""; \
-		echo "====== Clean du module $$module ======"; \
-		$(MAKE) -C $$module clean; \
-	done
+# ------------------------------------------------------------
+# Clean targets
+# ------------------------------------------------------------
+
+clean: $(addprefix clean-,$(SUBMODULES))
+	@echo ""
+	@echo "====== ENV files cleaned ======"
+
+clean-%:
+	$(call run_module,Clean,$*,clean)
+
+# ------------------------------------------------------------
+# Full cleanup
+# ------------------------------------------------------------
+
+proper: clean
+	@echo ""
+	@echo "====== Removing Docker containers, orphans and volumes ======"
+	docker compose down -v --remove-orphans
+

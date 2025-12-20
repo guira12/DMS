@@ -1,9 +1,11 @@
-MODULE_NAME=drone_db
-IMAGE_NAME=$(MODULE_NAME):latest
+MODULE_NAME=droneDB
+IMAGE_NAME=drone_db:latest
 
-.PHONY: build
+.PHONY: build clean
 
 build:
-	@echo "===> Building Docker image: $(MODULE_NAME)"
+	@echo "===> Building Docker image: $(IMAGE_NAME)"
 	docker build -t $(IMAGE_NAME) .
+clean:
+	@(rm -vf $(ENV_FOLDER)*.env $(ENV_FOLDER)*.env.secrets | sed "s|removed '|removed '$(MODULE_NAME)/|") || true
 
