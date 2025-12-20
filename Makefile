@@ -4,7 +4,7 @@ SUBMODULES = droneManager droneDB minio
 ENV_FOLDER ?= config/envs/
 export ENV_FOLDER
 
-.PHONY: all build $(SUBMODULES)
+.PHONY: all build start stop clean $(SUBMODULES)
 
 all: build
 
@@ -35,3 +35,9 @@ clean:
 		echo "====== Clean du module $$module ======"; \
 		$(MAKE) -C $$module clean; \
 	done
+
+proper: clean
+	@echo ""
+	@echo "====== Suppression des containers et volumes Docker ======"
+	docker compose down -v --remove-orphans
+

@@ -1,7 +1,7 @@
 MODULE_NAME=minio
 IMAGE_NAME=$(MODULE_NAME):latest
 
-.PHONY: build
+.PHONY: build clean
 
 build:
 	@echo "===> Building Docker image: $(MODULE_NAME)"
