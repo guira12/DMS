@@ -57,6 +57,75 @@ services:
     networks:
       - backend-network
 
+  loki:
+    image: grafana/loki:${GRAFANA_LOKI_VERSION:-3.5.2}
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+     - ./DMSLogs/config/loki/loki-config.yaml:/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - backend-network
+
+  grafana:
+    image: grafana/grafana:${GRAFANA_VERSION:-12.0.2}
+    container_name: grafana
+    environment:
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_BASIC_ENABLED=false
+    ports:
+      - 3000:3000/tcp
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+        apiVersion: 1
+        datasources:
+        - name: Loki
+          type: loki
+          access: proxy
+          orgId: 1
+          url: http://loki:3100
+          basicAuth: false
+          isDefault: false
+          version: 1
+          editable: false
+        - name: Prometheus
+          type: prometheus
+          orgId: 1
+          url: http://prometheus:9090
+          basicAuth: false
+          isDefault: true
+          version: 1
+          editable: false
+        EOF
+        /run.sh
+    networks:
+      - backend-network
+
+  alloy:
+   image: grafana/alloy:${GRAFANA_ALLOY_VERSION:-v1.10.0}
+   container_name: alloy
+   privileged: true
+   ports:
+     - 12345:12345
+   environment:
+      ALLOY_DEPLOY_MODE: docker
+   volumes:
+      - ./DMSLogs/config/alloy/config.alloy:/etc/alloy/config.alloy
+      - ./DMSLogs/data/alloy-data:/var/lib/alloy/data
+      - /var/run/docker.sock:/var/run/docker.sock
+   command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+   extra_hosts:
+        - "host.docker.internal:host-gateway"
+   devices:
+        - /dev/kmsg
+   networks:
+      - backend-network
 
 networks:
   backend-network:

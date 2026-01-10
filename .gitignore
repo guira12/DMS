@@ -17,3 +17,6 @@ droneManager/target/
 #Editor
 *.idea
 *.vscode
+
+#DMSLogs
+DMSLogs/data/
