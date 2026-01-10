@@ -58,7 +58,8 @@ build-%:
 start: build
 	@echo ""
 	@echo "====== Starting all project containers ======"
-	docker compose up -d
+	docker compose up -d > /dev/null 2>&1
+	@echo "[INFO] All services have been started successfully."
 
 stop:
 	@echo ""
